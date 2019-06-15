@@ -62,7 +62,7 @@ module.exports = function encodeImage(fileName) {
   const indexString = indexesToString(indexColors)
 
   if (invalidColor.size) {
-    errors.push(`${[...invalidColor].join(',')} is out of palette. Use ${colorPalette[0]} as fallback.`)
+    errors.push(`${[...invalidColor].join(',')} is out of palette. Using ${colorPalette[0]} as fallback.`)
   }
 
   return [RLE_encode(indexString), errors]

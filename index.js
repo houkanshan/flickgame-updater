@@ -8,8 +8,9 @@ const glob = require('glob')
 const encodeImage = require('./encodeImage')
 const debounce = require('lodash.debounce')
 const pkgJson = require('./package')
-const { updateToGist, createGist, readFromGist } = require('./github')
 const log = require('./log')
+const { updateToGist, createGist, readFromGist } = require('./github')
+const createEmptyPng = require('./createEmptyPng')
 const { canvasWidth, canvasHeight } = require('./constants')
 
 const emptyCanvas = [canvasWidth * canvasHeight, '0']
@@ -43,6 +44,14 @@ program
       gameLink = data.gameLink
     }
 
+    // If there's no png files, create templates.
+    const files = glob.sync(path.join(dir, '*.png'))
+    if (!files.length) {
+      log('Found no png file, creating templates for you...')
+      Array(16).fill(0).forEach((_, i) => {
+        createEmptyPng(dir, (i + 1).toString())
+      })
+    }
 
     if (watch) {
       return startWatch({ gist, dir, token, hyperlinks, canvasses, gameLink })
