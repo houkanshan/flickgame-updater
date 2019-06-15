@@ -1,0 +1,35 @@
+{
+  "name": "flickgame-updater",
+  "version": "1.0.0",
+  "description": "Update your flickgame from your favorite painter.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/houkanshan/flickgame-updater.git"
+  },
+  "keywords": [
+    "flickgame"
+  ],
+  "author": "houkanshan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/houkanshan/flickgame-updater/issues"
+  },
+  "homepage": "https://github.com/houkanshan/flickgame-updater#readme",
+  "dependencies": {
+    "@octokit/rest": "^16.28.1",
+    "chokidar": "^3.0.1",
+    "commander": "^2.20.0",
+    "dateformat": "^3.0.3",
+    "glob": "^7.1.4",
+    "lodash.chunk": "^4.2.0",
+    "lodash.debounce": "^4.0.8",
+    "pngjs": "^3.4.0"
+  },
+  "bin": {
+    "flickgame-updater": "./index.js"
+  }
+}
