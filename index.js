@@ -28,6 +28,7 @@ program
 
     let hyperlinks = Array(16).fill(emptyLink)
     let canvasses = Array(16).fill(emptyCanvas)
+    let gameLink = "www.flickgame.org"
 
     if (!gist) {
       log('Creating new gist...')
@@ -37,13 +38,14 @@ program
       data = await readFromGist(token, gist)
       hyperlinks = data.hyperlinks
       canvasses = data.canvasses
+      gameLink = data.gameLink
     }
 
 
     if (watch) {
-      return startWatch({ gist, dir, token, hyperlinks, canvasses })
+      return startWatch({ gist, dir, token, hyperlinks, canvasses, gameLink })
     } else {
-      return run({ gist, dir, token, hyperlinks, canvasses })
+      return run({ gist, dir, token, hyperlinks, canvasses, gameLink })
     }
   })
 
@@ -51,7 +53,7 @@ program.parse(process.argv)
 
 
 
-async function run({ dir, gist, token, hyperlinks, canvasses }) {
+async function run({ dir, gist, token, hyperlinks, canvasses, gameLink }) {
 
 
   glob(`${dir}/*.png`, function (err, files) {
@@ -63,14 +65,16 @@ async function run({ dir, gist, token, hyperlinks, canvasses }) {
     })
 
     const json = {
-      gameLink: "www.flickgame.org",
+      gameLink,
       canvasses,
       hyperlinks,
     }
 
     log(`Encoded ${newCanvasses.length} png files`)
 
-    updateToGist(token, gist, JSON.stringify(json))
+    const content = JSON.stringify(json)
+
+    updateToGist(token, gist, content)
   })
 }
 
@@ -81,8 +85,10 @@ function startWatch(options) {
     `${dir}/*.png`,
   ])
 
+  let lastRun = Promise.resolve()
+
   const callback = debounce(function() {
-    run(options)
+    lastRun = lastRun.then(() => run(options))
   }, 500)
 
   watcher.on('all', callback)
