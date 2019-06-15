@@ -17,3 +17,4 @@ npm install -g flickgame-updater
 cd <your_png_files_folder>
 flickgame-updater --token <github_token> --watch
 ```
+3. Import [palette.ase](https://github.com/houkanshan/flickgame-updater/raw/master/palette.ase) in your painter.
