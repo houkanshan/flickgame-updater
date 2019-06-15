@@ -1,6 +1,6 @@
 {
   "name": "flickgame-updater",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Update your flickgame from your favorite painter.",
   "main": "index.js",
   "scripts": {
