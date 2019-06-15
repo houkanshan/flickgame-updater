@@ -2,6 +2,7 @@ const fs = require('fs')
 const { PNG } = require('pngjs')
 const chunk = require('lodash.chunk')
 const colorPalette = require('./palette')
+const { canvasWidth, canvasHeight } = require('./constants')
 
 function rgbToHex(rgbColor) {
   return '#' + rgbColor.slice(0, 3).map((c) => c.toString(16).padStart(2, '0')).join('')
@@ -50,6 +51,12 @@ module.exports = function encodeImage(fileName) {
   const errors = []
   const data = fs.readFileSync(fileName)
   const png = PNG.sync.read(data)
+  if (png.width !== canvasWidth || png.height !== canvasHeight) {
+    errors.push(
+      `Image size should be ${canvasWidth}x${canvasHeight}, ` +
+      `you're using ${png.width}x${png.height}.`
+    )
+  }
   const rgbColors = chunk(png.data, 4)
   const indexColors = rgbColorsToIndexes(rgbColors, colorPalette)
   const indexString = indexesToString(indexColors)

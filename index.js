@@ -10,8 +10,9 @@ const debounce = require('lodash.debounce')
 const pkgJson = require('./package')
 const { updateToGist, createGist, readFromGist } = require('./github')
 const log = require('./log')
+const { canvasWidth, canvasHeight } = require('./constants')
 
-const emptyCanvas = [16000, '0']
+const emptyCanvas = [canvasWidth * canvasHeight, '0']
 const emptyLink = Array(16).fill(0)
 
 program.version(pkgJson.version)
