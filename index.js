@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+const fs = require('fs')
 const path = require('path')
 const program = require('commander')
 const chokidar = require('chokidar')
@@ -56,7 +57,7 @@ program.parse(process.argv)
 async function run({ dir, gist, token, hyperlinks, canvasses, gameLink }) {
 
 
-  glob(`${dir}/*.png`, function (err, files) {
+  glob(path.join(dir, '*.png'), function (err, files) {
     // Fill new canvasses from files to the original canvasses from gist.
     const newCanvasses = files.map(encodeImage)
     const canvasIndexes = files.map((f) => parseInt(path.basename(f, '.png') - 1))
@@ -74,6 +75,7 @@ async function run({ dir, gist, token, hyperlinks, canvasses, gameLink }) {
 
     const content = JSON.stringify(json)
 
+    fs.writeFileSync(path.join(dir, 'game.json'), content)
     updateToGist(token, gist, content)
   })
 }
@@ -82,13 +84,14 @@ function startWatch(options) {
   const { dir } = options
 
   const watcher = chokidar.watch([
-    `${dir}/*.png`,
+    path.join(dir, '*.png')
   ])
 
   let lastRun = Promise.resolve()
 
-  const callback = debounce(function() {
-    lastRun = lastRun.then(() => run(options))
+  const callback = debounce(async function() {
+    await lastRun
+    lastRun = await run(options)
   }, 500)
 
   watcher.on('all', callback)
