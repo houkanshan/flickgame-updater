@@ -14,7 +14,7 @@ npm install -g flickgame-updater
 ## Usage
 
 1. Generate a GitHub personal access token: https://github.com/settings/tokens/new
-  ![Gist is enough](./doc/token.png)
+  > <img width="500" src="./doc/token.jpg"/>
 2. Run `flickgame-updater` as `watch` mode:
 ```bash
 cd <your_png_files_folder>
