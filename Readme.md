@@ -20,5 +20,7 @@ npm install -g flickgame-updater
 cd <your_png_files_folder>
 flickgame-updater --token <github_token> --watch
 ```
-3. Create a new 160x100 image in Aseprite or anything you like.
+3. Create a 160x100 image in Aseprite or anything you like.
 4. Import [palette.ase](https://github.com/houkanshan/flickgame-updater/raw/master/palette.ase) as palette.
+5. Save your images as `1.png` `2.png` ... 
+6. Still, you have to add hyperlink through the online flickgame editor.
