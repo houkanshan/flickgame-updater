@@ -7,8 +7,18 @@ function rgbToHex(rgbColor) {
   return '#' + rgbColor.slice(0, 3).map((c) => c.toString(16).padStart(2, '0')).join('')
 }
 
+function rgbColorToIndex(color, palette) {
+  const hexColor = rgbToHex(color)
+  const index = palette.indexOf(hexColor)
+  if (index < 0) {
+    invalidColor.add(hexColor)
+    return 0
+  }
+  return index
+}
+
 function rgbColorsToIndexes(colors, palette) {
-  return colors.map((c) => palette.indexOf(rgbToHex(c)))
+  return colors.map((c) => rgbColorToIndex(c, palette))
 }
 
 function indexesToString(indexes) {
@@ -33,11 +43,20 @@ function RLE_encode(input) {
     return encoding;
 }
 
+let invalidColor = new Set()
+
 module.exports = function encodeImage(fileName) {
+  invalidColor = new Set()
+  const errors = []
   const data = fs.readFileSync(fileName)
   const png = PNG.sync.read(data)
   const rgbColors = chunk(png.data, 4)
   const indexColors = rgbColorsToIndexes(rgbColors, colorPalette)
   const indexString = indexesToString(indexColors)
-  return RLE_encode(indexString)
+
+  if (invalidColor.size) {
+    errors.push(`${[...invalidColor].join(',')} is out of palette. Use ${colorPalette[0]} as fallback.`)
+  }
+
+  return [RLE_encode(indexString), errors]
 }

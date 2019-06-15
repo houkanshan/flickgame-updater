@@ -52,14 +52,25 @@ program
 
 program.parse(process.argv)
 
+function logErrors(fileName, errors) {
+  if (errors.length) {
+    log(`[Warning] ${fileName}:`)
+    errors.forEach((e) => {
+      log(`    ${e}`)
+    })
+  }
+}
 
 
 async function run({ dir, gist, token, hyperlinks, canvasses, gameLink }) {
-
-
   glob(path.join(dir, '*.png'), function (err, files) {
     // Fill new canvasses from files to the original canvasses from gist.
-    const newCanvasses = files.map(encodeImage)
+    const newCanvasses = files.map((f) => {
+      const [canvas, errors] = encodeImage(f)
+      logErrors(f, errors)
+      return canvas
+    })
+
     const canvasIndexes = files.map((f) => parseInt(path.basename(f, '.png') - 1))
     canvasIndexes.forEach(function(canvasIndex, i) {
       canvasses[canvasIndex] = newCanvasses[i]
@@ -75,7 +86,7 @@ async function run({ dir, gist, token, hyperlinks, canvasses, gameLink }) {
 
     const content = JSON.stringify(json)
 
-    fs.writeFileSync(path.join(dir, 'game.json'), content)
+    fs.writeFileSync(path.join(dir, 'game.txt'), content)
     updateToGist(token, gist, content)
   })
 }
