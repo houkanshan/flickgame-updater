@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
+const path = require('path')
 const program = require('commander')
 const chokidar = require('chokidar')
 const glob = require('glob')
 const encodeImage = require('./encodeImage')
 const debounce = require('lodash.debounce')
 const pkgJson = require('./package')
-const { updateGist } = require('./github')
+const { updateToGist, createGist, readFromGist } = require('./github')
 const log = require('./log')
 
 const emptyCanvas = [16000, '0']
@@ -15,20 +16,33 @@ const emptyLink = Array(16).fill(0)
 program.version(pkgJson.version)
 
 program
-  .option('--gist <gist_id>', 'The Gist ID of your flickgame.')
   .option('--token <github_token>', 'Your GitHub token for reading/writing your gist. https://github.com/settings/tokens')
+  .option('--gist <gist_id>', 'The gist ID of your flickgame. If not provided, we will create a new gist.')
   .option('--dir <dir>', 'Where your png files located in. Default: ./')
   .option('--watch', 'Start a watcher')
-  .action(function(options) {
-    const { gist, dir = '.', token, watch } = options
-    if (!gist || !token) {
+  .action(async function(options) {
+    let { gist, dir = '.', token, watch } = options
+    if (!token) {
       return program.help()
     }
 
-    if (watch) {
-      return startWatch({ gist, dir, token })
+    let hyperlinks = Array(16).fill(emptyLink)
+    let canvasses = Array(16).fill(emptyCanvas)
+
+    if (!gist) {
+      gist = await createGist(token)
+      console.log(gist)
     } else {
-      return run({ gist, dir, token })
+      data = await readFromGist(token, gist)
+      hyperlinks = data.hyperlinks
+      canvasses = data.canvasses
+    }
+
+
+    if (watch) {
+      return startWatch({ gist, dir, token, hyperlinks, canvasses })
+    } else {
+      return run({ gist, dir, token, hyperlinks, canvasses })
     }
   })
 
@@ -36,34 +50,39 @@ program.parse(process.argv)
 
 
 
-function run({ dir, gist, token }) {
-  glob(`${dir}/*.png`, function (err, files) {
-    const canvases = files.map(encodeImage)
-    const fullCanvases = [...canvases, ...Array(16).fill(emptyCanvas)].slice(0, 16)
+async function run({ dir, gist, token, hyperlinks, canvasses }) {
 
-    const hyperlinks = [] // TODO
-    const fullHyperlinks = [...hyperlinks, ...Array(16).fill(emptyLink)].slice(0, 16)
+
+  glob(`${dir}/*.png`, function (err, files) {
+    // Fill new canvasses from files to the original canvasses from gist.
+    const newCanvasses = files.map(encodeImage)
+    const canvasIndexes = files.map((f) => parseInt(path.basename(f, '.png')))
+    canvasIndexes.forEach(function(canvasIndex, i) {
+      canvasses[canvasIndex] = newCanvasses[i]
+    })
 
     const json = {
       gameLink: "www.flickgame.org",
-      canvasses: fullCanvases,
-      hyperlinks: fullHyperlinks,
+      canvasses,
+      hyperlinks,
     }
 
-    log(`Encoded ${canvases.length} png files`)
+    log(`Encoded ${newCanvasses.length} png files`)
 
-    updateGist(token, gist, JSON.stringify(json))
+    updateToGist(token, gist, JSON.stringify(json))
   })
 }
 
-function startWatch({ dir, gist, token }) {
+function startWatch(options) {
+  const { dir } = options
+
   const watcher = chokidar.watch([
     `${dir}/*.png`,
   ])
 
   const callback = debounce(function() {
-    run({ dir, gist, token })
-  })
+    run(options)
+  }, 500)
 
   watcher.on('all', callback)
 }
